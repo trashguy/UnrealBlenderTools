@@ -21,10 +21,11 @@ UNREAL_VERSION = os.environ.get('UNREAL_VERSION', '5.4')
 # switch ports depending on whether in test environment or not
 BLENDER_PORT = os.environ.get('BLENDER_PORT', '9997')
 UNREAL_PORT = os.environ.get('UNREAL_PORT', '9998')
-if DOCKER_ENVIRONMENT:
+if os.environ.get('TEST_ENVIRONMENT'):
     BLENDER_PORT = os.environ.get('BLENDER_PORT', '8997')
     UNREAL_PORT = os.environ.get('UNREAL_PORT', '8998')
 
+TEST_ENVIRONMENT = os.environ.get('TEST_ENVIRONMENT')
 HOST_REPO_FOLDER = os.environ.get('HOST_REPO_FOLDER', os.path.normpath(os.path.join(os.getcwd(), os.pardir)))
 CONTAINER_REPO_FOLDER = os.environ.get('CONTAINER_REPO_FOLDER', '/tmp/blender_tools/')
 HOST_TEST_FOLDER = os.environ.get('HOST_TEST_FOLDER', os.getcwd())
@@ -59,7 +60,7 @@ if __name__ == '__main__':
         os.environ['RPC_TRACEBACK_FILE'] = os.path.join(HOST_TEST_FOLDER, 'data', 'traceback.log')
 
     # zip and copy addons into release folder
-    if DOCKER_ENVIRONMENT:
+    if TEST_ENVIRONMENT:
         # copy each addons code into the test directory
         for addon_name in list(filter(None, os.environ.get('BLENDER_ADDONS', '').split(','))):
             addon_folder_path = os.path.join(HOST_REPO_FOLDER, 'src', 'addons', addon_name)
@@ -134,10 +135,14 @@ if __name__ == '__main__':
         exclusive_test_files=EXCLUSIVE_TEST_FILES,
         exclusive_tests=EXCLUSIVE_TESTS,
     )
-    if DOCKER_ENVIRONMENT:
+    if TEST_ENVIRONMENT:
+        # remove existing containers first
+        if os.environ.get('REMOVE_CONTAINERS', '').lower() != 'false':
+            container_test_manager.stop()
+
         container_test_manager.start()
 
     container_test_manager.run_test_cases()
 
-    if DOCKER_ENVIRONMENT and os.environ.get('REMOVE_CONTAINERS', '').lower() != 'false':
+    if TEST_ENVIRONMENT and os.environ.get('REMOVE_CONTAINERS', '').lower() != 'false':
         container_test_manager.stop()
