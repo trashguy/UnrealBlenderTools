@@ -3,9 +3,12 @@
 import os
 import sys
 import logging
+DOCKER_ENVIRONMENT = os.environ.get('DOCKER_ENVIRONMENT', 'no').lower() == 'yes'
+if DOCKER_ENVIRONMENT:
+    os.environ['TEST_ENVIRONMENT'] = '1'
 
 # adds the rpc module to the path
-sys.path.append(os.path.join(os.path.dirname(__file__), os.path.pardir, 'send2ue', 'dependencies'))
+sys.path.append(os.path.join(os.path.dirname(__file__), os.path.pardir, 'src', 'addons', 'send2ue', 'dependencies'))
 
 from utils.addon_packager import AddonPackager
 from utils.container_test_manager import ContainerTestManager
@@ -18,11 +21,10 @@ UNREAL_VERSION = os.environ.get('UNREAL_VERSION', '5.4')
 # switch ports depending on whether in test environment or not
 BLENDER_PORT = os.environ.get('BLENDER_PORT', '9997')
 UNREAL_PORT = os.environ.get('UNREAL_PORT', '9998')
-if os.environ.get('TEST_ENVIRONMENT'):
+if DOCKER_ENVIRONMENT:
     BLENDER_PORT = os.environ.get('BLENDER_PORT', '8997')
     UNREAL_PORT = os.environ.get('UNREAL_PORT', '8998')
 
-TEST_ENVIRONMENT = os.environ.get('TEST_ENVIRONMENT')
 HOST_REPO_FOLDER = os.environ.get('HOST_REPO_FOLDER', os.path.normpath(os.path.join(os.getcwd(), os.pardir)))
 CONTAINER_REPO_FOLDER = os.environ.get('CONTAINER_REPO_FOLDER', '/tmp/blender_tools/')
 HOST_TEST_FOLDER = os.environ.get('HOST_TEST_FOLDER', os.getcwd())
@@ -48,19 +50,19 @@ if __name__ == '__main__':
         'RPC_TRACEBACK_FILE': '/tmp/blender/send2ue/data/traceback.log',
         'RPC_TIME_OUT': '60'
     }
-    # add the test environment variable if specified
-    if TEST_ENVIRONMENT:
-        os.environ['TEST_ENVIRONMENT'] = TEST_ENVIRONMENT
-        os.environ['RPC_TRACEBACK_FILE'] = os.path.join(HOST_TEST_FOLDER, 'data', 'traceback.log')
-
     # make sure this is set in the current environment
     os.environ.update(environment)
 
+    # add the test environment variable if specified
+    if DOCKER_ENVIRONMENT:
+        os.environ['TEST_ENVIRONMENT'] = '1'
+        os.environ['RPC_TRACEBACK_FILE'] = os.path.join(HOST_TEST_FOLDER, 'data', 'traceback.log')
+
     # zip and copy addons into release folder
-    if TEST_ENVIRONMENT:
+    if DOCKER_ENVIRONMENT:
         # copy each addons code into the test directory
         for addon_name in list(filter(None, os.environ.get('BLENDER_ADDONS', '').split(','))):
-            addon_folder_path = os.path.join(HOST_REPO_FOLDER, addon_name)
+            addon_folder_path = os.path.join(HOST_REPO_FOLDER, 'src', 'addons', addon_name)
             addon_packager = AddonPackager(addon_name, addon_folder_path, os.path.join(HOST_REPO_FOLDER, 'release'))
             addon_packager.zip_addon()
 
@@ -93,7 +95,7 @@ if __name__ == '__main__':
                     '--python-exit-code',
                     '1',
                     '--python',
-                    '/tmp/blender_tools/send2ue/dependencies/rpc/server.py',
+                    '/tmp/blender_tools/src/addons/send2ue/dependencies/rpc/server.py',
                 ]
             },
             'unreal': {
@@ -118,7 +120,7 @@ if __name__ == '__main__':
                     '-nosplash',
                     '-noloadstartuppackages'
                     '-log',
-                    '-ExecutePythonScript=/tmp/blender_tools/send2ue/dependencies/rpc/server.py',
+                    '-ExecutePythonScript=/tmp/blender_tools/src/addons/send2ue/dependencies/rpc/server.py',
                 ],
                 'auth_config': {
                     'username': os.environ.get('GITHUB_USERNAME'),
@@ -132,10 +134,10 @@ if __name__ == '__main__':
         exclusive_test_files=EXCLUSIVE_TEST_FILES,
         exclusive_tests=EXCLUSIVE_TESTS,
     )
-    if TEST_ENVIRONMENT:
+    if DOCKER_ENVIRONMENT:
         container_test_manager.start()
 
     container_test_manager.run_test_cases()
 
-    if TEST_ENVIRONMENT and os.environ.get('REMOVE_CONTAINERS', '').lower() != 'false':
+    if DOCKER_ENVIRONMENT and os.environ.get('REMOVE_CONTAINERS', '').lower() != 'false':
         container_test_manager.stop()

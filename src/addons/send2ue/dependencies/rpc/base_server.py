@@ -110,10 +110,13 @@ class AuthenticatedRequestHandler(SimpleXMLRPCRequestHandler):
             import traceback
             traceback.print_exc()
 
-            # dump the traceback to a file so that the client can read it.
-            os.makedirs(TRACEBACK_FILE.parent, exist_ok=True)
-            with open(TRACEBACK_FILE, 'w') as file:
-                file.write(f'Error from server:\n{traceback.format_exc()}')
+            try:
+                # dump the traceback to a file so that the client can read it.
+                os.makedirs(TRACEBACK_FILE.parent, exist_ok=True)
+                with open(TRACEBACK_FILE, 'w') as file:
+                    file.write(f'Error from server:\n{traceback.format_exc()}')
+            except PermissionError:
+                pass
 
             raise error
          
@@ -153,7 +156,6 @@ class BaseRPCServer:
         self.server.register_function(self.set_env)
         self.server.register_introspection_functions()
         self.server.register_multicall_functions()
-        logger.info(f'Started RPC server "{name}".')
 
     @staticmethod
     def is_running():
