@@ -28,20 +28,7 @@
       }
     },
     {
-      "name": "Run All Tests",
-      "type": "debugpy",
-      "request": "launch",
-      "program": "${workspaceFolder}/tests/run_tests.py",
-      "console": "integratedTerminal",
-      "envFile": "${workspaceFolder}/.env",
-      "cwd": "${workspaceFolder}/tests",
-      "justMyCode": false,
-      "env": {
-        "DOCKER_ENVIRONMENT": "${input:docker-environment}"
-      }
-    },
-    {
-      "name": "Run Specific Tests",
+      "name": "Debug Tests: Host Environment",
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/tests/run_tests.py",
@@ -52,16 +39,62 @@
       "env": {
         "EXCLUSIVE_TEST_FILES": "${input:test-file}",
         "EXCLUSIVE_TESTS": "${input:test-name}",
-        "DOCKER_ENVIRONMENT": "${input:docker-environment}"
       }
     },
+    {
+      "name": "Debug Tests: Docker Environment",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/tests/run_tests.py",
+      "console": "integratedTerminal",
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}/tests",
+      "justMyCode": false,
+      "env": {
+        "DOCKER_ENVIRONMENT": "yes",
+        "EXCLUSIVE_TEST_FILES": "${input:test-file}",
+        "EXCLUSIVE_TESTS": "${input:test-name}",
+        "DEBUGGING_ON": "${input:debugging-on}"
+      }
+    },
+    {
+      "name": "Python Debugger: Attach Blender Docker",
+      "type": "debugpy",
+      "request": "attach",
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/",
+          "remoteRoot": "/tmp/blender_tools/"
+        }
+      ],
+      "connect": {
+        "host": "localhost",
+        "port": 5668
+      }
+    },
+    {
+      "name": "Python Debugger: Attach Unreal Docker",
+      "type": "debugpy",
+      "request": "attach",
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/",
+          "remoteRoot": "/tmp/blender_tools/"
+        }
+      ],
+      "connect": {
+        "host": "localhost",
+        "port": 5669
+      }
+    }
   ],
   "inputs": [
     {
       "id": "test-file",
       "type": "pickString",
-      "default": "test_send2ue_core.py",
+      "default": "all",
       "options": [
+        "all",
         "test_send2ue_core.py",
         "test_send2ue_cubes.py",
         "test_send2ue_extension_affixes.py",
@@ -90,7 +123,18 @@
     {
       "id": "test-name",
       "type": "promptString",
+      "default": "all",
       "description": "The name of the specific test to run"
+    },
+    {
+      "id": "debugging-on",
+      "type": "pickString",
+      "default": "",
+      "options": [
+        "no",
+        "yes"
+      ],
+      "description": "Turn on remote debugging in the containers?"
     }
   ]
 }

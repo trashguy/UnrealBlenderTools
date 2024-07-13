@@ -3,6 +3,7 @@
 import os
 import sys
 import logging
+DEBUGGING_ON = os.environ.get('DEBUGGING_ON', 'no').lower() == 'yes'
 DOCKER_ENVIRONMENT = os.environ.get('DOCKER_ENVIRONMENT', 'no').lower() == 'yes'
 if DOCKER_ENVIRONMENT:
     os.environ['TEST_ENVIRONMENT'] = '1'
@@ -10,7 +11,6 @@ if DOCKER_ENVIRONMENT:
 # adds the rpc module to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), os.path.pardir, 'src', 'addons', 'send2ue', 'dependencies'))
 
-from utils.addon_packager import AddonPackager
 from utils.container_test_manager import ContainerTestManager
 
 BLENDER_ADDONS = os.environ.get('BLENDER_ADDONS', 'send2ue,ue2rigify')
@@ -21,6 +21,8 @@ UNREAL_VERSION = os.environ.get('UNREAL_VERSION', '5.4')
 # switch ports depending on whether in test environment or not
 BLENDER_PORT = os.environ.get('BLENDER_PORT', '9997')
 UNREAL_PORT = os.environ.get('UNREAL_PORT', '9998')
+BLENDER_CONTAINER_DEBUG_PORT = os.environ.get('BLENDER_DEBUG_PORT', '5668')
+UNREAL_CONTAINER_DEBUG_PORT = os.environ.get('UNREAL_DEBUG_PORT', '5669')
 if os.environ.get('TEST_ENVIRONMENT'):
     BLENDER_PORT = os.environ.get('BLENDER_PORT', '8997')
     UNREAL_PORT = os.environ.get('UNREAL_PORT', '8998')
@@ -30,9 +32,13 @@ HOST_REPO_FOLDER = os.environ.get('HOST_REPO_FOLDER', os.path.normpath(os.path.j
 CONTAINER_REPO_FOLDER = os.environ.get('CONTAINER_REPO_FOLDER', '/tmp/blender_tools/')
 HOST_TEST_FOLDER = os.environ.get('HOST_TEST_FOLDER', os.getcwd())
 CONTAINER_TEST_FOLDER = os.environ.get('CONTAINER_TEST_FOLDER', f'{CONTAINER_REPO_FOLDER}tests')
-EXCLUSIVE_TEST_FILES = list(filter(None, os.environ.get('EXCLUSIVE_TEST_FILES', '').split(','))) or None
-EXCLUSIVE_TESTS = list(filter(None, os.environ.get('EXCLUSIVE_TESTS', '').split(','))) or None
 ALWAYS_PULL = bool(int(os.environ.get('ALWAYS_PULL', '0')))
+EXCLUSIVE_TEST_FILES = list(filter(None, os.environ.get('EXCLUSIVE_TEST_FILES', '').split(','))) or None
+if EXCLUSIVE_TEST_FILES == ['all']:
+    EXCLUSIVE_TEST_FILES = []
+EXCLUSIVE_TESTS = list(filter(None, os.environ.get('EXCLUSIVE_TESTS', '').split(','))) or None
+if EXCLUSIVE_TESTS == ['all']:
+    EXCLUSIVE_TESTS = []
 
 
 if __name__ == '__main__':
@@ -40,32 +46,34 @@ if __name__ == '__main__':
     environment = {
         'SEND2UE_DEV': '1',
         'UE2RIGIFY_DEV': '1',
+        'SEND2UE_TEMPLATE_FOLDER': '/tmp',
+        'UE_PYTHONPATH': '$UE_PYTHONPATH:/tmp/blender_tools/scripts/resources/unreal',
+        'BLENDER_DEBUG_PORT': BLENDER_CONTAINER_DEBUG_PORT,
+        'UNREAL_DEBUG_PORT': UNREAL_CONTAINER_DEBUG_PORT,
         'BLENDER_ADDONS': BLENDER_ADDONS,
         'BLENDER_PORT': BLENDER_PORT,
         'BLENDER_VERSION': BLENDER_VERSION,
+        'UNREAL_VERSION': UNREAL_VERSION,
         'UNREAL_PORT': UNREAL_PORT,
         'HOST_REPO_FOLDER': HOST_REPO_FOLDER,
         'CONTAINER_REPO_FOLDER': CONTAINER_REPO_FOLDER,
         'HOST_TEST_FOLDER': HOST_TEST_FOLDER,
         'CONTAINER_TEST_FOLDER': CONTAINER_TEST_FOLDER,
         'RPC_TRACEBACK_FILE': '/tmp/blender/send2ue/data/traceback.log',
-        'RPC_TIME_OUT': '60'
+        'RPC_TIME_OUT': '120'
     }
     # make sure this is set in the current environment
     os.environ.update(environment)
 
     # add the test environment variable if specified
     if DOCKER_ENVIRONMENT:
-        os.environ['TEST_ENVIRONMENT'] = '1'
         os.environ['RPC_TRACEBACK_FILE'] = os.path.join(HOST_TEST_FOLDER, 'data', 'traceback.log')
-
-    # zip and copy addons into release folder
-    if TEST_ENVIRONMENT:
-        # copy each addons code into the test directory
-        for addon_name in list(filter(None, os.environ.get('BLENDER_ADDONS', '').split(','))):
-            addon_folder_path = os.path.join(HOST_REPO_FOLDER, 'src', 'addons', addon_name)
-            addon_packager = AddonPackager(addon_name, addon_folder_path, os.path.join(HOST_REPO_FOLDER, 'release'))
-            addon_packager.zip_addon()
+        if DEBUGGING_ON:
+            environment['TEST_ENVIRONMENT'] = '1'
+            environment['BLENDER_DEBUGGING_ON'] = 'yes'
+            environment['UNREAL_DEBUGGING_ON'] = 'yes'
+            environment['BLENDER_DEBUG_PORT'] = BLENDER_CONTAINER_DEBUG_PORT
+            environment['UNREAL_DEBUG_PORT'] = UNREAL_CONTAINER_DEBUG_PORT
 
     # define the additional volume paths
     # this is the temp data location where send2ue export/imports data
@@ -85,8 +93,9 @@ if __name__ == '__main__':
                 'always_pull': ALWAYS_PULL,
                 'tag': f'blender-linux:{BLENDER_VERSION}',
                 'repository': 'ghcr.io/poly-hammer',
-                'user': 'root',
+                'user': 'ubuntu',
                 'rpc_port': BLENDER_PORT,
+                'debug_port': BLENDER_CONTAINER_DEBUG_PORT,
                 'environment': environment,
                 'volumes': volumes,
                 'command': [
@@ -96,32 +105,32 @@ if __name__ == '__main__':
                     '--python-exit-code',
                     '1',
                     '--python',
-                    '/tmp/blender_tools/src/addons/send2ue/dependencies/rpc/server.py',
+                    '/tmp/blender_tools/scripts/resources/blender/startup.py',
                 ]
             },
             'unreal': {
                 'refresh': False,
                 'always_pull': ALWAYS_PULL,
                 'rpc_port': UNREAL_PORT,
+                'debug_port': UNREAL_CONTAINER_DEBUG_PORT,
                 'environment': environment,
                 'volumes': volumes,
-                # 'tag': 'unreal-linux:5.4',
-                # 'repository': 'ghcr.io/poly-hammer',
-                'tag': f'unreal-engine:dev-slim-{UNREAL_VERSION}',
-                'repository': 'ghcr.io/epicgames',
+                'tag': f'unreal-linux:{UNREAL_VERSION}',
+                'repository': 'ghcr.io/poly-hammer',
+                # 'tag': f'unreal-engine:dev-slim-{UNREAL_VERSION}',
+                # 'repository': 'ghcr.io/epicgames',
                 'user': 'ue4',
                 'command': [
                     '/home/ue4/UnrealEngine/Engine/Binaries/Linux/UnrealEditor-Cmd',
-                    # '/tmp/unreal_projects/test01/test01.uproject',
-                    f'{CONTAINER_TEST_FOLDER}/test_files/unreal_projects/test01/test01.uproject',
+                    '-nullrhi',
+                    '/tmp/unreal_projects/test01.uproject',
                     '-stdout',
                     '-unattended',
                     '-nopause',
-                    '-nullrhi',
                     '-nosplash',
-                    '-noloadstartuppackages'
+                    '-noloadstartuppackages',
                     '-log',
-                    '-ExecutePythonScript=/tmp/blender_tools/src/addons/send2ue/dependencies/rpc/server.py',
+                    # '-ExecutePythonScript=/tmp/blender_tools/scripts/resources/unreal/init_unreal.py',
                 ],
                 'auth_config': {
                     'username': os.environ.get('GITHUB_USERNAME'),

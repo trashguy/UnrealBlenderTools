@@ -381,13 +381,17 @@ class ContainerTestManager:
         for name, data in self.images.items():
             refresh = data.get('refresh', True)
             rpc_port = data.get('rpc_port')
+            debug_port = data.get('debug_port')
             additional_packages = data.get('additional_packages', [])
             repository = data.get('repository')
             tag = data.get('tag')
             command = data.get('command', [])
             user = data.get('user')
             ports = data.get('ports', {})
-            ports.update({f'{rpc_port}/tcp': ('127.0.0.1', rpc_port)})
+            ports.update({
+                f'{rpc_port}/tcp': ('127.0.0.1', rpc_port),
+                f'{debug_port}/tcp': ('127.0.0.1', debug_port)
+            })
             entrypoint = data.get('entrypoint')
             environment = data.get('environment', {})
             environment.update({

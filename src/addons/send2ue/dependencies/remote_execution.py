@@ -7,7 +7,6 @@ import time as _time
 import socket as _socket
 import logging as _logging
 import threading as _threading
-import bpy
 
 # Protocol constants (see PythonScriptRemoteExecution.cpp for the full protocol definition)
 _PROTOCOL_VERSION = 1                                   # Protocol version number
@@ -34,6 +33,7 @@ class RemoteExecutionConfig(object):
     Configuration data for establishing a remote connection with a Unreal Editor instance running Python.
     '''
     def __init__(self):
+        import bpy
         # The multicast group endpoint tuple that the UDP multicast socket should join (must match the "Multicast Group Endpoint" setting in the Python plugin)
         self.multicast_ttl = bpy.context.preferences.addons["send2ue"].preferences.multicast_ttl
 

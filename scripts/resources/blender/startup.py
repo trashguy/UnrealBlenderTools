@@ -8,11 +8,12 @@ logger = logging.getLogger(__name__)
 
 logging.basicConfig(level=logging.DEBUG)
 
+REPO_ROOT = Path(__file__).parent.parent.parent.parent
 debug = os.environ.get('BLENDER_DEBUGGING_ON', 'no').lower() == 'yes'
 
 ADDONS = {
-    'send2ue': Path(__file__).parent.parent.parent.parent / 'src',
-    'ue2rigify': Path(__file__).parent.parent.parent.parent / 'src'
+    'send2ue': REPO_ROOT / 'src',
+    'ue2rigify': REPO_ROOT / 'src'
 }
 
 
@@ -28,6 +29,7 @@ if bpy.app.version[0] > 2: # type: ignore
             script_directory = bpy.context.preferences.filepaths.script_directories.new()
             script_directory.name = name # type: ignore
             script_directory.directory = str(scripts_folder) # type: ignore
+            sys.path.append(os.path.join(str(scripts_folder), 'addons'))
 
     try:
         bpy.ops.script.reload()
@@ -46,7 +48,10 @@ if debug:
         import debugpy
         port = int(os.environ.get('BLENDER_DEBUG_PORT', 5678))
         debugpy.configure(python=os.environ.get('BLENDER_PYTHON_EXE', sys.executable))
-        debugpy.listen(port)
+        if os.environ.get('TEST_ENVIRONMENT'):
+            debugpy.listen(('0.0.0.0', port))
+        else:
+            debugpy.listen(port)
         logger.info(f'Waiting for debugger to attach on port {port}...')
         debugpy.wait_for_client()
     except ImportError:
@@ -54,3 +59,15 @@ if debug:
             'Failed to initialize debugger because debugpy is not available '
             'in the current python environment.'
         )
+
+
+if os.environ.get('TEST_ENVIRONMENT'):
+    from send2ue.dependencies.rpc.server import RPCServer
+    rpc_server = RPCServer()
+    rpc_server.start_server_blocking()
+else:
+    from send2ue.dependencies.rpc import blender_server
+    rpc_server = blender_server.RPCServer()
+    rpc_server.start(threaded=True)
+
+print('Blender RPC Server started')
