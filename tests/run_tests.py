@@ -46,6 +46,7 @@ if __name__ == '__main__':
     environment = {
         'SEND2UE_DEV': '1',
         'UE2RIGIFY_DEV': '1',
+        'UE_PROJECT_FILE': '/tmp/blender_tools/tests/test_files/unreal_projects/test01/test01.uproject',
         'BLENDER_DEBUG_PORT': BLENDER_CONTAINER_DEBUG_PORT,
         'UNREAL_DEBUG_PORT': UNREAL_CONTAINER_DEBUG_PORT,
         'BLENDER_ADDONS': BLENDER_ADDONS,

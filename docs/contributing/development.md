@@ -33,7 +33,7 @@ git checkout some-task-branch
 ```
 
 ## VSCode
-The repo contains the tasks, launch actions, and settings for for developing with vscode. To get setup do the following:
+The repo contains the tasks, launch actions, and settings for developing with vscode. To get setup do the following:
 
 ### Setup
 1. Install the VSCode profile under `scripts/resources/profiles/dev.code-profile`. You can do this by typing `> Profile Import Profile` in the command pallette. This will give you all the vscode extensions you will need.
