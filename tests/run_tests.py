@@ -46,8 +46,6 @@ if __name__ == '__main__':
     environment = {
         'SEND2UE_DEV': '1',
         'UE2RIGIFY_DEV': '1',
-        'SEND2UE_TEMPLATE_FOLDER': '/tmp',
-        'UE_PYTHONPATH': '$UE_PYTHONPATH:/tmp/blender_tools/scripts/resources/unreal',
         'BLENDER_DEBUG_PORT': BLENDER_CONTAINER_DEBUG_PORT,
         'UNREAL_DEBUG_PORT': UNREAL_CONTAINER_DEBUG_PORT,
         'BLENDER_ADDONS': BLENDER_ADDONS,
@@ -68,8 +66,8 @@ if __name__ == '__main__':
     # add the test environment variable if specified
     if DOCKER_ENVIRONMENT:
         os.environ['RPC_TRACEBACK_FILE'] = os.path.join(HOST_TEST_FOLDER, 'data', 'traceback.log')
+        environment['TEST_ENVIRONMENT'] = '1'
         if DEBUGGING_ON:
-            environment['TEST_ENVIRONMENT'] = '1'
             environment['BLENDER_DEBUGGING_ON'] = 'yes'
             environment['UNREAL_DEBUGGING_ON'] = 'yes'
             environment['BLENDER_DEBUG_PORT'] = BLENDER_CONTAINER_DEBUG_PORT
@@ -79,9 +77,11 @@ if __name__ == '__main__':
     # this is the temp data location where send2ue export/imports data
     host_temp_folder = os.path.join(HOST_TEST_FOLDER, 'data')
     volumes = [
-        f'{HOST_REPO_FOLDER}:{CONTAINER_REPO_FOLDER}',
-        f'{host_temp_folder}:/tmp/blender/send2ue/data'
+        f'{HOST_REPO_FOLDER}:{CONTAINER_REPO_FOLDER}'
     ]
+    shared_volumes = {
+        'send2ue-export-data': '/tmp/blender/send2ue/data',
+    }
 
     logging.debug('Launching ContainerTestManager...')
     # instance the container test manager with the blender and unreal containers
@@ -93,7 +93,7 @@ if __name__ == '__main__':
                 'always_pull': ALWAYS_PULL,
                 'tag': f'blender-linux:{BLENDER_VERSION}',
                 'repository': 'ghcr.io/poly-hammer',
-                'user': 'ubuntu',
+                'user': 'root',
                 'rpc_port': BLENDER_PORT,
                 'debug_port': BLENDER_CONTAINER_DEBUG_PORT,
                 'environment': environment,
@@ -117,20 +117,18 @@ if __name__ == '__main__':
                 'volumes': volumes,
                 'tag': f'unreal-linux:{UNREAL_VERSION}',
                 'repository': 'ghcr.io/poly-hammer',
-                # 'tag': f'unreal-engine:dev-slim-{UNREAL_VERSION}',
-                # 'repository': 'ghcr.io/epicgames',
                 'user': 'ue4',
                 'command': [
                     '/home/ue4/UnrealEngine/Engine/Binaries/Linux/UnrealEditor-Cmd',
                     '-nullrhi',
-                    '/tmp/unreal_projects/test01.uproject',
+                    '/tmp/blender_tools/tests/test_files/unreal_projects/test01/test01.uproject',
                     '-stdout',
                     '-unattended',
                     '-nopause',
                     '-nosplash',
                     '-noloadstartuppackages',
                     '-log',
-                    # '-ExecutePythonScript=/tmp/blender_tools/scripts/resources/unreal/init_unreal.py',
+                    '-ExecutePythonScript=/tmp/blender_tools/scripts/resources/unreal/init_unreal.py',
                 ],
                 'auth_config': {
                     'username': os.environ.get('GITHUB_USERNAME'),
@@ -138,6 +136,7 @@ if __name__ == '__main__':
                 }
             }
         },
+        shared_volumes=shared_volumes,
         test_case_folder=HOST_TEST_FOLDER,
         additional_python_paths=[HOST_REPO_FOLDER, CONTAINER_REPO_FOLDER],
         prefix_service_logs=True,
