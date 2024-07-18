@@ -22,7 +22,7 @@ permissions:
 jobs:
   test-lts:
     name: Test LTS
-    uses: poly-hammer/BlenderTools/.github/workflows/re-use-tests.yml@main
+    uses: poly-hammer/BlenderTools/.github/workflows/re-use-tests.yml@restructure-addons-for-better-dev-setup
     secrets: inherit
     with:
       title: Test LTS
@@ -32,7 +32,7 @@ jobs:
   test-latest:
     needs: test-lts
     name: Test Latest
-    uses: poly-hammer/BlenderTools/.github/workflows/re-use-tests.yml@main
+    uses: poly-hammer/BlenderTools/.github/workflows/re-use-tests.yml@restructure-addons-for-better-dev-setup
     secrets: inherit
     with:
       title: Test Latest
