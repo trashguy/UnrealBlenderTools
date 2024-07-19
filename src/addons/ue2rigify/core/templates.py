@@ -309,11 +309,7 @@ def create_template_folder(template_name, properties):
     # create the template folder
     template_path = os.path.join(Template.RIG_TEMPLATES_PATH(), template_name)
     if not os.path.exists(template_path):
-        try:
-            original_umask = os.umask(0)
-            os.makedirs(template_path, 0o777)
-        finally:
-            os.umask(original_umask)
+        os.makedirs(template_path, exist_ok=True)
 
     # keep checking the os file system till the new folder exists
     while not os.path.exists(template_path):
@@ -361,15 +357,9 @@ def save_text_file(data, file_path):
     :param str file_path: The full file path to where the file will be saved.
     """
     if '.py' in os.path.basename(file_path):
-        try:
-            original_umask = os.umask(0)
-            if os.path.exists(file_path):
-                os.chmod(file_path, 0o777)
-            file = open(file_path, 'w+')
-        finally:
-            os.umask(original_umask)
-        file.write(data)
-        file.close()
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w+') as file:
+            file.write(data)
 
 
 def save_json_file(data, file_path):
@@ -380,15 +370,9 @@ def save_json_file(data, file_path):
     :param str file_path: The full file path to where the file will be saved.
     """
     if '.json' in os.path.basename(file_path):
-        try:
-            original_umask = os.umask(0)
-            if os.path.exists(file_path):
-                os.chmod(file_path, 0o777)
-            file = open(file_path, 'w+')
-        finally:
-            os.umask(original_umask)
-        json.dump(data, file, indent=1)
-        file.close()
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w+') as file:
+            json.dump(data, file, indent=1)
 
 
 def save_constraints(constraints_data, properties):

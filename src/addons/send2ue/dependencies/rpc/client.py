@@ -26,9 +26,12 @@ class RPCUnmarshaller(Unmarshaller):
 
     @staticmethod
     def _show_server_traceback() -> Optional[str]:
-        if TRACEBACK_FILE.exists():
-            with open(TRACEBACK_FILE, 'r') as file:
-                logger.error(file.read())
+        try:
+            if TRACEBACK_FILE.exists():
+                with open(TRACEBACK_FILE, 'r') as file:
+                    logger.error(file.read())
+        except PermissionError:
+            pass
 
     @staticmethod
     def _get_built_in_exceptions() -> List:

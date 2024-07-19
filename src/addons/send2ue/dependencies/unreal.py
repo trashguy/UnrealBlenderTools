@@ -31,8 +31,6 @@ remote_unreal_decorator = rpc.factory.remote_call(
     default_imports=['import unreal'],
     remap_pairs=REMAP_PAIRS,
 )
-
-rpc_client = rpc.client.RPCClient(port=UNREAL_PORT)
 unreal_response = ''
 
 
@@ -170,6 +168,7 @@ def is_connected():
     Checks the rpc server connection
     """
     try:
+        rpc_client = rpc.client.RPCClient(port=UNREAL_PORT)
         return rpc_client.proxy.is_running()
     except (RemoteDisconnected, ConnectionRefusedError, ProtocolError):
         return False
@@ -179,6 +178,7 @@ def set_rpc_env(key, value):
     """
     Sets an env value on the unreal RPC server.
     """
+    rpc_client = rpc.client.RPCClient(port=UNREAL_PORT)
     rpc_client.proxy.set_env(key, value)
 
 
@@ -1098,8 +1098,10 @@ class UnrealRemoteCalls:
         :param str setting_name: The setting to query in the supplied section.
         :return: Value of the queried setting.
         """
-        engine_config_dir = unreal.Paths.project_config_dir()
-        config_path = f'{engine_config_dir}{config_name}.ini'
+        uproject_path = unreal.Paths.get_project_file_path() 
+        config_path = os.path.join(os.path.dirname(uproject_path), 'Config',  f'{config_name}.ini') # type: ignore
+        if not os.path.exists(config_path):
+            return None
 
         from configparser import ConfigParser
         # setting strict to False to bypass duplicate keys in the config file

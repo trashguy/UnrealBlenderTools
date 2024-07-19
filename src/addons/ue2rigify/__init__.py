@@ -65,10 +65,14 @@ def unregister():
     """
     Unregisters the addon classes when the addon is disabled.
     """
-    nodes.remove_pie_menu_hot_keys()
-    node_editor.unregister()
-    nodes.unregister()
-    operators.unregister()
-    view_3d.unregister()
-    addon_preferences.unregister()
-    properties.unregister()
+    try:
+        nodes.remove_pie_menu_hot_keys()
+        node_editor.unregister()
+        nodes.unregister()
+        operators.unregister()
+        view_3d.unregister()
+        addon_preferences.unregister()
+        properties.unregister()
+    except Exception as e:
+        print(f"Error un-registering UE2Rigify: \n{e}")
+        

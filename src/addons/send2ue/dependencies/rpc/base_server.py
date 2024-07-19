@@ -35,8 +35,7 @@ def run_in_main_thread(callable_instance, *args):
     globals().pop(ERROR_VALUE_NAME, None)
     EXECUTION_QUEUE.put((callable_instance, args))
 
-    start_time = time.time()
-    while time.time() - start_time < timeout:
+    for attempt in range(timeout * 10):
         if RETURN_VALUE_NAME in globals():
             return globals().get(RETURN_VALUE_NAME)
         elif ERROR_VALUE_NAME in globals():
@@ -110,10 +109,13 @@ class AuthenticatedRequestHandler(SimpleXMLRPCRequestHandler):
             import traceback
             traceback.print_exc()
 
-            # dump the traceback to a file so that the client can read it.
-            os.makedirs(TRACEBACK_FILE.parent, exist_ok=True)
-            with open(TRACEBACK_FILE, 'w') as file:
-                file.write(f'Error from server:\n{traceback.format_exc()}')
+            try:
+                # dump the traceback to a file so that the client can read it.
+                os.makedirs(TRACEBACK_FILE.parent, exist_ok=True)
+                with open(TRACEBACK_FILE, 'w') as file:
+                    file.write(f'Error from server:\n{traceback.format_exc()}')
+            except PermissionError:
+                pass
 
             raise error
          
@@ -153,7 +155,6 @@ class BaseRPCServer:
         self.server.register_function(self.set_env)
         self.server.register_introspection_functions()
         self.server.register_multicall_functions()
-        logger.info(f'Started RPC server "{name}".')
 
     @staticmethod
     def is_running():

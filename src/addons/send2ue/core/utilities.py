@@ -881,17 +881,12 @@ def remove_from_disk(path, directory=False):
 
     :param str path: An file path.
     :param bool directory: Whether or not the path is a directory.
-    """
-    try:
-        original_umask = os.umask(0)
-        if os.path.exists(path):
-            os.chmod(path, 0o777)
-            if directory:
-                shutil.rmtree(path)
-            else:
-                os.remove(path)
-    finally:
-        os.umask(original_umask)
+    """    
+    if os.path.exists(path):
+        if directory:
+            shutil.rmtree(path, ignore_errors=True)
+        else:
+            os.remove(path)
 
 
 def remove_temp_folder():
@@ -911,7 +906,7 @@ def remove_temp_data():
     """
     temp_folder = get_temp_folder()
     if os.path.exists(temp_folder):
-        shutil.rmtree(temp_folder)
+        shutil.rmtree(temp_folder, ignore_errors=True)
 
 
 def remove_unpacked_files(unpacked_files):

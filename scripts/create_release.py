@@ -134,7 +134,7 @@ def package_addons(addon_release_folder):
 
     # package the addons
     for addon_name in BLENDER_ADDONS:
-        addon_folder_path = os.path.join(PROJECT_FOLDER, addon_name)
+        addon_folder_path = os.path.join(PROJECT_FOLDER, 'src', 'addons', addon_name)
         addon_packager = AddonPackager(addon_name, addon_folder_path, addon_release_folder)
         addon_packager.zip_addon()
 

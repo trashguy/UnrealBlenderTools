@@ -14,12 +14,14 @@ class BaseTestCase(unittest.TestCase):
         self.test_environment = os.environ.get('TEST_ENVIRONMENT')
         self.test_folder = os.environ.get('HOST_TEST_FOLDER')
         self.repo_folder = os.environ.get('HOST_REPO_FOLDER')
+        sys.path.append(os.path.join(self.repo_folder, 'src', 'addons'))
         if self.test_environment:
             self.test_folder = os.environ.get('CONTAINER_TEST_FOLDER')
             self.repo_folder = os.environ.get('CONTAINER_REPO_FOLDER')
+            sys.path.append(f'{self.repo_folder}/src/addons')
+
         self.addons_folder = os.path.join(self.repo_folder, 'release')
 
-        sys.path.append(self.repo_folder)
         import send2ue
         import ue2rigify
         self.send2ue = send2ue
@@ -39,7 +41,6 @@ class BaseTestCase(unittest.TestCase):
             self.blender.open_default()
 
         if os.environ.get('TEST_ENVIRONMENT'):
-            self.blender.install_addons(self.repo_folder, self.blender_addons)
             self.blender.send2ue_setup_project()
         else:
             for addon_name in self.blender_addons:
