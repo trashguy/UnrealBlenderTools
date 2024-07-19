@@ -1081,7 +1081,7 @@ class UnrealRemoteCalls:
         :returns: Returns a list of missing plugins if any.
         :rtype: list[str]
         """
-        uproject_path = unreal.Paths.get_project_file_path() or os.environ.get('UE_PROJECT_FILE')
+        uproject_path = unreal.Paths.get_project_file_path()
         with open(uproject_path, 'r') as uproject:
             project_data = json.load(uproject)
 
@@ -1098,7 +1098,7 @@ class UnrealRemoteCalls:
         :param str setting_name: The setting to query in the supplied section.
         :return: Value of the queried setting.
         """
-        uproject_path = unreal.Paths.get_project_file_path() or os.environ.get('UE_PROJECT_FILE') 
+        uproject_path = unreal.Paths.get_project_file_path() 
         config_path = os.path.join(os.path.dirname(uproject_path), 'Config',  f'{config_name}.ini') # type: ignore
         if not os.path.exists(config_path):
             return None

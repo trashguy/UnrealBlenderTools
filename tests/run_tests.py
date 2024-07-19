@@ -46,7 +46,6 @@ if __name__ == '__main__':
     environment = {
         'SEND2UE_DEV': '1',
         'UE2RIGIFY_DEV': '1',
-        'UE_PROJECT_FILE': '/tmp/blender_tools/tests/test_files/unreal_projects/test01/test01.uproject',
         'BLENDER_DEBUG_PORT': BLENDER_CONTAINER_DEBUG_PORT,
         'UNREAL_DEBUG_PORT': UNREAL_CONTAINER_DEBUG_PORT,
         'BLENDER_ADDONS': BLENDER_ADDONS,
@@ -125,13 +124,13 @@ if __name__ == '__main__':
                 'user': 'ue4',
                 'command': [
                     '/home/ue4/UnrealEngine/Engine/Binaries/Linux/UnrealEditor-Cmd',
-                    '-nullrhi',
                     '/tmp/blender_tools/tests/test_files/unreal_projects/test01/test01.uproject',
                     '-stdout',
                     '-unattended',
                     '-nopause',
+                    '-nullrhi',
                     '-nosplash',
-                    '-noloadstartuppackages',
+                    '-noloadstartuppackages'
                     '-log',
                     '-ExecutePythonScript=/tmp/blender_tools/scripts/resources/unreal/init_unreal.py',
                 ],

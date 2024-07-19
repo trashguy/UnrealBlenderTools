@@ -124,10 +124,6 @@ def get_template_folder():
 
     :return str: The file path to the temp folder.
     """
-    template_folder = os.environ.get('SEND2UE_TEMPLATE_FOLDER')
-    if template_folder:
-        return template_folder
-
     return os.path.join(
         tempfile.gettempdir(),
         ToolInfo.APP.value,
