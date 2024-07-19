@@ -53,9 +53,10 @@ jobs:
           export DOCKER_ENVIRONMENT=yes
           export UNREAL_VERSION=${{ inputs.unreal-version }}
           export BLENDER_VERSION=${{ inputs.blender-version }}
-          export ALWAYS_PULL=1
 
           echo $GITHUB_TOKEN | docker login ghcr.io -u ${{ secrets.GH_USER }} --password-stdin
+          docker pull ghcr.io/poly-hammer/blender-linux:$BLENDER_VERSION
+          docker pull ghcr.io/poly-hammer/unreal-linux:$UNREAL_VERSION
 
           cd ./tests
           python run_tests.py

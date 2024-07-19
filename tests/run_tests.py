@@ -107,7 +107,11 @@ if __name__ == '__main__':
                     '1',
                     '--python',
                     '/tmp/blender_tools/scripts/resources/blender/startup.py',
-                ]
+                ],
+                'auth_config': {
+                    'username': os.environ.get('GITHUB_USERNAME'),
+                    'password': os.environ.get('GITHUB_TOKEN')
+                }
             },
             'unreal': {
                 'refresh': False,
