@@ -1,15 +1,19 @@
-## Major Changes
-* Combined support for Blender 3.6 and 4.1
-
-## Minor Changes
-* Updated handling of global flags in lod_regex
-  * [9](https://github.com/poly-hammer/BlenderTools/pull/9)
-* Added Apply Groom Modifiers extension
-  * [18](https://github.com/poly-hammer/BlenderTools/pull/18)
+## Patch Changes
+* **MacOS and Linux support**
+  * [34](https://github.com/poly-hammer/BlenderTools/pull/34)
+* Combined mesh rotations fixed
+  * [27](https://github.com/poly-hammer/BlenderTools/pull/27)
+* Blender 4.2 support
+  * [41](https://github.com/poly-hammer/BlenderTools/pull/41)
+* Strip numbers from duplicate mesh sockets
+  * [46](https://github.com/poly-hammer/BlenderTools/pull/46)
+* Fixed scaling with Use Object Origins
+  * [50](https://github.com/poly-hammer/BlenderTools/pull/50)
 
 ## Special Thanks
-@jack-yao91 for his major contributions to support the continued development of this addon!
+@jack-yao91, @JoshQuake
+and @goatilus, @xBaaDf00d for helping test on MacOS
 
 ## Tests Passing On
-* Blender `3.6`, `4.1` (installed from blender.org)
+* Blender `3.6`, `4.0`, `4.1`, `4.2` (installed from blender.org)
 * Unreal `5.3`, `5.4`

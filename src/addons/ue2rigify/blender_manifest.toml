@@ -2,12 +2,12 @@ schema_version = "1.0.0"
 id = "ue2rigify"
 name = "UE to Rigify"
 tagline = "Allows you to drive a given rig and its animations with a Rigify rig."
-version = "1.6.4"
+version = "1.7.0"
 type = "add-on"
 tags = ["Pipeline"]
 blender_version_min = "3.6.0"
 website = "https://poly-hammer.github.io/BlenderTools/ue2rigify"
-maintainer = "Community"
+maintainer = "JoshQuake, jack-yao91"
 license = [ "SPDX:MIT" ]
 copyright = [
     "2020-2023 Epic Games, Inc."
