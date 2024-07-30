@@ -38,7 +38,7 @@ class ReleaseAddon:
         release_notes_file_path = os.path.join(
             os.path.dirname(__file__),
             os.pardir,
-            'src',
+            'src/addons',
             self.addon_name,
             'release_notes.md'
         )
