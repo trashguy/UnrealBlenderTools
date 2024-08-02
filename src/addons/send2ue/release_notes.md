@@ -1,10 +1,10 @@
 ## Patch Changes
-* Fixed send2ue module not found in Blender 4.2
-  * [59](https://github.com/poly-hammer/BlenderTools/pull/59)
+* Implemented __package\_\_
+  * [63](https://github.com/poly-hammer/BlenderTools/pull/63)
 
 
 ## Special Thanks
-@jack-yao91
+@JoshQuake
 
 ## Tests Passing On
 * Blender `3.6`, `4.0`, `4.1`, `4.2` (installed from blender.org)
