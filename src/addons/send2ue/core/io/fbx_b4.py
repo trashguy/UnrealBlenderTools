@@ -55,18 +55,13 @@ def export(**keywords):
         elem_data_single_string,
         elem_data_single_int32_array,
         elem_data_single_float64_array,
+        elem_data_single_char,
         elem_properties,
         elem_props_template_init,
         elem_props_template_set,
         elem_props_template_finalize,
         fbx_name_class
     )
-    
-    # Added version check to import new elem data type added in 4.0. Shading element was updated to use char instead of bool
-    if bpy.app.version >= (4,0,0): 
-        from io_scene_fbx.fbx_utils import (
-            elem_data_single_char
-        )
 
     convert_rad_to_deg_iter = units_convertor_iter("radian", "degree")
 
@@ -540,10 +535,8 @@ def export(**keywords):
         # object type, etc.
         elem_data_single_int32(model, b"MultiLayer", 0)
         elem_data_single_int32(model, b"MultiTake", 0)
-        if (bpy.app.version >= (4,0,0)):
-            elem_data_single_char(model, b"Shading", b"\x01")  # Shading was changed to a char from bool in blender 4
-        else:
-            elem_data_single_bool(model, b"Shading", True)
+        elem_data_single_char(model, b"Shading", b"\x01")  # Shading was changed to a char from bool in blender 4
+
         elem_data_single_string(model, b"Culling", b"CullingOff")
 
         if obj_type == b"Camera":
@@ -637,16 +630,17 @@ def export(**keywords):
     export_fbx_bin.fbx_data_bindpose_element = fbx_data_bindpose_element
 
     # patch in a report method on self to fake the fbx export operator class
-    self = type(
-        'Send2UeExportFBX',
-        (object,),
-        {'report': report_error}
-    )
-    export_fbx_bin.save(self, bpy.context, **keywords)
-
-    # now re-patch back the export bin module so that the existing fbx addon still has its original code
-    # https://github.com/EpicGamesExt/BlenderTools/issues/598
-    export_fbx_bin.fbx_animations_do = original_fbx_animations_do
-    export_fbx_bin.fbx_data_armature_elements = original_fbx_data_armature_elements
-    export_fbx_bin.fbx_data_object_elements = original_fbx_data_object_elements
-    export_fbx_bin.fbx_data_bindpose_element = original_fbx_data_bindpose_element
+    try:
+        self = type(
+            'Send2UeExportFBX',
+            (object,),
+            {'report': report_error}
+        )
+        export_fbx_bin.save(self, bpy.context, **keywords)
+    finally:
+        # now re-patch back the export bin module so that the existing fbx addon still has its original code
+        # https://github.com/EpicGamesExt/BlenderTools/issues/598
+        export_fbx_bin.fbx_animations_do = original_fbx_animations_do
+        export_fbx_bin.fbx_data_armature_elements = original_fbx_data_armature_elements
+        export_fbx_bin.fbx_data_object_elements = original_fbx_data_object_elements
+        export_fbx_bin.fbx_data_bindpose_element = original_fbx_data_bindpose_element
