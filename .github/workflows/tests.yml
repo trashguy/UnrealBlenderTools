@@ -1,6 +1,6 @@
 name: Tests
 
-on: 
+on:
   pull_request:
     types: [opened, synchronize, reopened]
   push:
@@ -9,16 +9,16 @@ on:
       - dev
       - ci-testing
     paths:
-      - 'send2ue/**/*'
-      - 'ue2rigify/**/*'
-      - 'tests/**/*'
-      - '.github/workflows/**'
+      - "send2ue/**/*"
+      - "ue2rigify/**/*"
+      - "tests/**/*"
+      - ".github/workflows/**"
 
 permissions:
   contents: read
   checks: write
   id-token: write
-      
+
 jobs:
   test-lts:
     name: Test LTS
@@ -36,5 +36,5 @@ jobs:
     secrets: inherit
     with:
       title: Test Latest
-      unreal-version: 5.4
+      unreal-version: 5.5
       blender-version: 4.2
